@@ -8,8 +8,17 @@ import (
 	"strings"
 )
 
+var COMMANDS_WITHOUT_KEY map[string]bool
+var COMMANDS_WITH_SUBOP map[string]bool
+
+func init() {
+	COMMANDS_WITHOUT_KEY = map[string]bool{"FLUSHALL": true, "FLUSHDB": true, "SELECT": true}
+	COMMANDS_WITH_SUBOP = map[string]bool{"BITOP": true}
+}
+
 type Operation struct {
 	Command   string
+	SubOp     string
 	Key       string
 	Arguments []string
 }
@@ -65,15 +74,23 @@ func readParameter(input *bufio.Reader) (s string, err error) {
 }
 
 func commandHasKey(command string) bool {
-	if command == "SELECT" || command == "FLUSHDB" || command == "FLUSHALL" {
+	if COMMANDS_WITHOUT_KEY[strings.ToUpper(command)] {
 		return false
 	}
 	return true
 }
 
+func commandHasSubOps(command string) bool {
+	if COMMANDS_WITH_SUBOP[strings.ToUpper(command)] {
+		return true
+	}
+	return false
+}
+
 func ReadOperation(input *bufio.Reader) (op Operation, err error) {
 	// read parameter count
 	var key string
+	var subop string
 	str, err := readLine(input)
 	if err != nil {
 		return
@@ -101,6 +118,17 @@ func ReadOperation(input *bufio.Reader) (op Operation, err error) {
 		return
 	}
 
+	if commandHasSubOps(command) {
+		// read subop
+		subop, e = readParameter(input)
+		if e != nil {
+			se := fmt.Sprintf("Corrupt File: subop can't be read. Error:" + e.Error())
+			err = UnexpectedEOF{msg: se}
+			return
+		}
+		count-- // decrement count. as subop counts as one
+	}
+
 	if commandHasKey(command) {
 		// read key
 		key, e = readParameter(input)
@@ -123,7 +151,9 @@ func ReadOperation(input *bufio.Reader) (op Operation, err error) {
 		}
 		atts = append(atts, att)
 	}
+
 	op.Command = command
+	op.SubOp = subop
 	op.Key = key
 	op.Arguments = atts
 	return

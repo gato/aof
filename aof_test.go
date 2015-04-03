@@ -134,7 +134,7 @@ func TestUnexpectedEofInvalidArgumentSize(t *testing.T) {
 	}
 }
 
-func TestSupportFlushall(t *testing.T) {
+func TestFlushallSupport(t *testing.T) {
 	file, err := os.Open("test-data-flushall.aof")
 	if err != nil {
 		t.Errorf("Can't open file. Error:'%s'", err.Error())
@@ -161,7 +161,7 @@ func TestSupportFlushall(t *testing.T) {
 	}
 }
 
-func TestSupportFlushdb(t *testing.T) {
+func TestFlushdbSupport(t *testing.T) {
 	file, err := os.Open("test-data-flushdb.aof")
 	if err != nil {
 		t.Errorf("Can't open file. Error:'%s'", err.Error())
@@ -179,6 +179,42 @@ func TestSupportFlushdb(t *testing.T) {
 	}
 	if len(op1.Arguments) != 0 {
 		t.Errorf("Wrong argument count '%d' expected '0'.", len(op1.Arguments))
+		return
+	}
+	_, err = ReadOperation(input)
+	if err != nil {
+		t.Errorf("Error reading operation 2 :'%s'", err.Error())
+		return
+	}
+}
+
+func TestBitopSupport(t *testing.T) {
+	file, err := os.Open("test-data-bitop.aof")
+	if err != nil {
+		t.Errorf("Can't open file. Error:'%s'", err.Error())
+		return
+	}
+	input := bufio.NewReader(file)
+	op1, err := ReadOperation(input)
+	if err != nil {
+		t.Errorf("Error reading operation 1 :'%s'", err.Error())
+		return
+	}
+	if op1.Command != "bitop" {
+		t.Errorf("Wrong command '%s' expected 'bitop'", op1.Command)
+		return
+	}
+	if op1.SubOp != "xor" {
+		t.Errorf("Wrong subop '%s' expected 'xor'", op1.SubOp)
+		return
+	}
+	if op1.Key != "k3" {
+		t.Errorf("Wrong key '%s' expected 'k3'", op1.Key)
+		return
+	}
+
+	if len(op1.Arguments) != 2 {
+		t.Errorf("Wrong argument count '%d' expected '2'.", len(op1.Arguments))
 		return
 	}
 	_, err = ReadOperation(input)

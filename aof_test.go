@@ -1,4 +1,4 @@
-package aoflib
+package aof
 
 import (
 	"bufio"

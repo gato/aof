@@ -59,7 +59,7 @@ func readParameter(input *bufio.Reader) (s string, err error) {
 		err = UnexpectedEOF{msg: se}
 		return
 	}
-	// leo el parametro
+	// read parameter
 	str, err = readLine(input)
 	if err != nil {
 		return
@@ -167,7 +167,7 @@ func writeString(str string, out io.Writer) (err error) {
 		return
 	}
 	if n != len(s) {
-		err = fmt.Errorf("Error writing length written %d expected %d", n, len(s))
+		err = fmt.Errorf("Error writing length, written %d expected %d", n, len(s))
 		return
 	}
 	s = fmt.Sprintf("%s\r\n", str)
@@ -176,7 +176,7 @@ func writeString(str string, out io.Writer) (err error) {
 		return
 	}
 	if n != len(s) {
-		err = fmt.Errorf("Error writing length written %d expected %d", n, len(s))
+		err = fmt.Errorf("Error writing length, written %d expected %d", n, len(s))
 		return
 	}
 	return
@@ -187,6 +187,9 @@ func (this Operation) ToAof(out io.Writer) (err error) {
 	paramCount := 1 // 1 for command
 	if commandHasKey(this.Command) {
 		paramCount++ // count key
+	}
+	if commandHasSubOps(this.Command) {
+		paramCount++ // count subop
 	}
 	paramCount += len(this.Arguments)
 	s := fmt.Sprintf("*%d\r\n", paramCount)
@@ -202,6 +205,13 @@ func (this Operation) ToAof(out io.Writer) (err error) {
 	err = writeString(this.Command, out)
 	if err != nil {
 		return
+	}
+	// write subop
+	if commandHasSubOps(this.Command) {
+		err = writeString(this.SubOp, out)
+		if err != nil {
+			return
+		}
 	}
 	// write key
 	if commandHasKey(this.Command) {

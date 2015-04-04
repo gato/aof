@@ -33,8 +33,11 @@ func (e UnexpectedEOF) Error() string {
 
 func readLine(input *bufio.Reader) (s string, err error) {
 	str, err := input.ReadString('\n')
-	str = strings.Replace(str, "\n", "", 1)
-	s = strings.Replace(str, "\r", "", 1)
+	if err != nil {
+		return
+	}
+	str = strings.TrimSuffix(str, "\n")
+	s = strings.TrimSuffix(str, "\r")
 	return
 }
 

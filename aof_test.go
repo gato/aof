@@ -223,3 +223,25 @@ func TestBitopSupport(t *testing.T) {
 		return
 	}
 }
+
+type FakeWriter []byte
+
+func (this *FakeWriter) Write(b []byte) (int, error) {
+	*this = append(*this, b...)
+	return len(b), nil
+}
+
+func TestWriteStringOk(t *testing.T) {
+	var fw FakeWriter = make([]byte, 0)
+	s := "hello world!"
+	err := writeString(s, &fw)
+	if err != nil {
+		t.Errorf("Error writing string:'%s'", err.Error())
+		return
+	}
+	expected := "$12\r\nhello world!\r\n"
+	if expected != string(fw) {
+		t.Errorf("Invalid written string:'%s' expected:'%s'", string(fw), expected)
+		return
+	}
+}

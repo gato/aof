@@ -6,9 +6,11 @@ aoflib is a library written in Go for parsing and rewriting redis aof file (redi
 used by [aofgrep](http://github.com/gato/aofgrep) (available soon)
 
 ## Todo
-- [*] test writeString Ok
-- [ ] test writeString with errors
-- [ ] test ToAof OK
+- [x] test writeString Ok
+- [x] test writeString with errors
+- [x] test ToAof OK
 - [ ] test ToAof with errors
 - [ ] change readline to use length instead of searching for \n
-- [ ] change replace in readline for TrimSuffix
+- [x] change replace in readline for TrimSuffix
+- [ ] 100% test coverage for ReadOperation
+- [ ] 100% test coverage for Operation.ToAof

@@ -322,3 +322,42 @@ func TestWriteTruncateErrors(t *testing.T) {
 		return
 	}
 }
+
+func TestToAofWithoutKey(t *testing.T) {
+	var op Operation = Operation{}
+	op.Command = "SELECT"
+	op.Arguments = append(make([]string, 0), "0")
+	var rw RecordWriter = make([]byte, 0)
+	op.ToAof(&rw)
+	expected := "*2\r\n$6\r\nSELECT\r\n$1\r\n0\r\n"
+	if string(rw) != expected {
+		t.Errorf("invalid serialization got:\n%s\n expected:\n%s\n", string(rw), expected)
+	}
+}
+
+func TestToAofOperationWithKey(t *testing.T) {
+	var op Operation = Operation{}
+	op.Command = "SADD"
+	op.Key = "k1"
+	op.Arguments = append(make([]string, 0), "k2", "k3")
+	var rw RecordWriter = make([]byte, 0)
+	op.ToAof(&rw)
+	expected := "*4\r\n$4\r\nSADD\r\n$2\r\nk1\r\n$2\r\nk2\r\n$2\r\nk3\r\n"
+	if string(rw) != expected {
+		t.Errorf("invalid serialization got:\n%s\n expected:\n%s\n", string(rw), expected)
+	}
+}
+
+func TestToAofOperationWithSubOp(t *testing.T) {
+	var op Operation = Operation{}
+	op.Command = "BITOP"
+	op.SubOp = "AND"
+	op.Key = "k1"
+	op.Arguments = append(make([]string, 0), "k2", "k3")
+	var rw RecordWriter = make([]byte, 0)
+	op.ToAof(&rw)
+	expected := "*5\r\n$5\r\nBITOP\r\n$3\r\nAND\r\n$2\r\nk1\r\n$2\r\nk2\r\n$2\r\nk3\r\n"
+	if string(rw) != expected {
+		t.Errorf("invalid serialization got:\n%s\n expected:\n%s\n", string(rw), expected)
+	}
+}

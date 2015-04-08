@@ -170,7 +170,7 @@ func writeString(str string, out io.Writer) (err error) {
 		return
 	}
 	if n != len(s) {
-		err = fmt.Errorf("Error writing length, written %d expected %d", n, len(s))
+		err = fmt.Errorf("Error writing string length. Written %d bytes expected %d", n, len(s))
 		return
 	}
 	s = fmt.Sprintf("%s\r\n", str)
@@ -179,7 +179,7 @@ func writeString(str string, out io.Writer) (err error) {
 		return
 	}
 	if n != len(s) {
-		err = fmt.Errorf("Error writing length, written %d expected %d", n, len(s))
+		err = fmt.Errorf("Error writing string value. Written %d bytes expected %d", n, len(s))
 		return
 	}
 	return

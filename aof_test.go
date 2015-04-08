@@ -2,6 +2,7 @@ package aof
 
 import (
 	"bufio"
+	"fmt"
 	"io"
 	"os"
 	"testing"
@@ -242,6 +243,82 @@ func TestWriteStringOk(t *testing.T) {
 	expected := "$12\r\nhello world!\r\n"
 	if expected != string(rw) {
 		t.Errorf("Invalid written string:'%s' expected:'%s'", string(rw), expected)
+		return
+	}
+}
+
+type ErrorNWriter struct {
+	current int
+	failing int
+}
+
+func (this *ErrorNWriter) Write(b []byte) (int, error) {
+	this.current += 1
+	if this.current == this.failing {
+		return len(b), fmt.Errorf("Some error")
+	}
+	return len(b), nil
+}
+
+func newErrorNWriter(failing int) ErrorNWriter {
+	return ErrorNWriter{current: 0, failing: failing}
+}
+
+type TruncateNWriter struct {
+	current int
+	failing int
+}
+
+func (this *TruncateNWriter) Write(b []byte) (int, error) {
+	this.current += 1
+	if this.current == this.failing {
+		return 0, nil
+	}
+	return len(b), nil
+}
+
+func newTruncateNWriter(failing int) TruncateNWriter {
+	return TruncateNWriter{current: 0, failing: failing}
+}
+
+func TestWriteErrors(t *testing.T) {
+	var ew ErrorNWriter = newErrorNWriter(1)
+	s := "hello world!"
+	err := writeString(s, &ew)
+	if err == nil {
+		t.Errorf("Error was expected but was nil")
+		return
+	}
+
+	ew = newErrorNWriter(2)
+	err = writeString(s, &ew)
+	if err == nil {
+		t.Errorf("Error was expected but was nil")
+		return
+	}
+}
+
+func TestWriteTruncateErrors(t *testing.T) {
+	var tw TruncateNWriter = newTruncateNWriter(1)
+	s := "hello world!"
+	err := writeString(s, &tw)
+	if err == nil {
+		t.Errorf("Error was expected but was nil")
+		return
+	}
+	if err.Error() != "Error writing string length. Written 0 bytes expected 5" {
+		t.Errorf("Invalid error got '%s' expected 'Error writing string length. Written 0 bytes expected 5'", err.Error())
+		return
+	}
+
+	tw = newTruncateNWriter(2)
+	err = writeString(s, &tw)
+	if err == nil {
+		t.Errorf("Error was expected but was nil")
+		return
+	}
+	if err.Error() != "Error writing string value. Written 0 bytes expected 14" {
+		t.Errorf("Invalid error got '%s' expected 'Error writing string length. Written 0 bytes expected 14'", err.Error())
 		return
 	}
 }

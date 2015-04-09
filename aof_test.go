@@ -356,7 +356,11 @@ func TestToAofWithoutKey(t *testing.T) {
 	op.Command = "SELECT"
 	op.Arguments = append(make([]string, 0), "0")
 	var rw RecordWriter = make([]byte, 0)
-	op.ToAof(&rw)
+	err := op.ToAof(&rw)
+	if err != nil {
+		t.Errorf("ToAof failed, error:'%s'", err.Error())
+		return
+	}
 	expected := "*2\r\n$6\r\nSELECT\r\n$1\r\n0\r\n"
 	if string(rw) != expected {
 		t.Errorf("invalid serialization got:\n%s\n expected:\n%s\n", string(rw), expected)
@@ -369,7 +373,11 @@ func TestToAofOperationWithKey(t *testing.T) {
 	op.Key = "k1"
 	op.Arguments = append(make([]string, 0), "k2", "k3")
 	var rw RecordWriter = make([]byte, 0)
-	op.ToAof(&rw)
+	err := op.ToAof(&rw)
+	if err != nil {
+		t.Errorf("ToAof failed, error:'%s'", err.Error())
+		return
+	}
 	expected := "*4\r\n$4\r\nSADD\r\n$2\r\nk1\r\n$2\r\nk2\r\n$2\r\nk3\r\n"
 	if string(rw) != expected {
 		t.Errorf("invalid serialization got:\n%s\n expected:\n%s\n", string(rw), expected)
@@ -383,11 +391,42 @@ func TestToAofOperationWithSubOp(t *testing.T) {
 	op.Key = "k1"
 	op.Arguments = append(make([]string, 0), "k2", "k3")
 	var rw RecordWriter = make([]byte, 0)
-	op.ToAof(&rw)
+	err := op.ToAof(&rw)
+	if err != nil {
+		t.Errorf("ToAof failed, error:'%s'", err.Error())
+		return
+	}
 	expected := "*5\r\n$5\r\nBITOP\r\n$3\r\nAND\r\n$2\r\nk1\r\n$2\r\nk2\r\n$2\r\nk3\r\n"
 	if string(rw) != expected {
 		t.Errorf("invalid serialization got:\n%s\n expected:\n%s\n", string(rw), expected)
 	}
+}
+
+func TestToAofErrors(t *testing.T) {
+	var op Operation = Operation{}
+	op.Command = "BITOP"
+	op.SubOp = "AND"
+	op.Key = "k1"
+	op.Arguments = append(make([]string, 0), "k2", "k3")
+	tw := newTruncateNWriter(1)
+	err := op.ToAof(&tw)
+	if err == nil {
+		t.Errorf("Error was expected")
+		return
+	}
+	// generating the AOF for this command call write([]byte) 11 times by calling
+	// writeString (except the first call which is direct)
+	// This loop generates error every 2 calls to simulate failing in every call
+	for i := 1; i < 12; i += 2 {
+		ew := newErrorNWriter(i)
+		err := op.ToAof(&ew)
+		if err == nil {
+			t.Errorf("Error was expected %d", i)
+			return
+		}
+
+	}
+
 }
 
 func TestReadParameterErrors(t *testing.T) {
@@ -461,7 +500,7 @@ func TestReadParameterErrors(t *testing.T) {
 
 }
 
-func TestReadOperationErrorS(t *testing.T) {
+func TestReadOperationErrors(t *testing.T) {
 	input := bufio.NewReader(strings.NewReader("a"))
 	_, err := ReadOperation(input)
 	if err == nil {

@@ -12,5 +12,5 @@ used by [aofgrep](http://github.com/gato/aofgrep) (available soon)
 - [ ] change readline to use length instead of searching for \n
 - [x] change replace in readline for TrimSuffix
 - [x] 100% test coverage for ReadOperation
-- [ ] 100% test coverage for Operation.ToAof
+- [x] 100% test coverage for Operation.ToAof
 - [ ] extract similar code from ReadOperation and readLine

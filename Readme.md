@@ -9,8 +9,8 @@ used by [aofgrep](http://github.com/gato/aofgrep) (available soon)
 - [x] test writeString Ok
 - [x] test writeString with errors
 - [x] test ToAof OK
-- [ ] test ToAof with errors
 - [ ] change readline to use length instead of searching for \n
 - [x] change replace in readline for TrimSuffix
-- [ ] 100% test coverage for ReadOperation
+- [x] 100% test coverage for ReadOperation
 - [ ] 100% test coverage for Operation.ToAof
+- [ ] extract similar code from ReadOperation and readLine

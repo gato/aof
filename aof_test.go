@@ -140,6 +140,25 @@ func TestUnexpectedEofInvalidArgumentSize(t *testing.T) {
 		return
 	}
 }
+func TestUnexpectedEofInvalidSubopSize(t *testing.T) {
+	file, err := os.Open("test-data-eof5.aof")
+	defer file.Close()
+	if err != nil {
+		t.Errorf("Can't open file. Error:'%s'", err.Error())
+		return
+	}
+	input := bufio.NewReader(file)
+	_, err = ReadOperation(input)
+	if err == nil {
+		t.Errorf("An error was expected but got nil")
+		return
+	}
+	_, ok := err.(UnexpectedEOF)
+	if !ok {
+		t.Errorf("Wrong error '%s' expected 'UnexpectedEOF'", err.Error())
+		return
+	}
+}
 
 func TestFlushallSupport(t *testing.T) {
 	file, err := os.Open("test-data-flushall.aof")
@@ -440,4 +459,51 @@ func TestReadParameterErrors(t *testing.T) {
 		return
 	}
 
+}
+
+func TestReadOperationErrorS(t *testing.T) {
+	input := bufio.NewReader(strings.NewReader("a"))
+	_, err := ReadOperation(input)
+	if err == nil {
+		t.Errorf("Error was expected")
+		return
+	}
+	if err != io.EOF {
+		t.Errorf("Wrong error '%s' expected 'EOF'", err.Error())
+		return
+	}
+	input = bufio.NewReader(strings.NewReader("a\r\n"))
+	_, err = ReadOperation(input)
+	if err == nil {
+		t.Errorf("Error was expected")
+		return
+	}
+	_, ok := err.(UnexpectedEOF)
+	if !ok {
+		t.Errorf("Wrong error '%s' expected 'UnexpectedEOF'", err.Error())
+		return
+	}
+	input = bufio.NewReader(strings.NewReader("a23\r\n"))
+	_, err = ReadOperation(input)
+	if err == nil {
+		t.Errorf("Error was expected")
+		return
+	}
+	_, ok = err.(UnexpectedEOF)
+	if !ok {
+		t.Errorf("Wrong error '%s' expected 'UnexpectedEOF'", err.Error())
+		return
+	}
+
+	input = bufio.NewReader(strings.NewReader("*A\r\n"))
+	_, err = ReadOperation(input)
+	if err == nil {
+		t.Errorf("Error was expected")
+		return
+	}
+	_, ok = err.(UnexpectedEOF)
+	if !ok {
+		t.Errorf("Wrong error '%s' expected 'UnexpectedEOF'", err.Error())
+		return
+	}
 }

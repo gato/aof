@@ -255,8 +255,8 @@ func TestBitopSupport(t *testing.T) {
 
 type RecordWriter []byte
 
-func (this *RecordWriter) Write(b []byte) (int, error) {
-	*this = append(*this, b...)
+func (rw *RecordWriter) Write(b []byte) (int, error) {
+	*rw = append(*rw, b...)
 	return len(b), nil
 }
 
@@ -280,9 +280,9 @@ type ErrorNWriter struct {
 	failing int
 }
 
-func (this *ErrorNWriter) Write(b []byte) (int, error) {
-	this.current += 1
-	if this.current == this.failing {
+func (ew *ErrorNWriter) Write(b []byte) (int, error) {
+	ew.current++
+	if ew.current == ew.failing {
 		return len(b), fmt.Errorf("Some error")
 	}
 	return len(b), nil
@@ -297,9 +297,9 @@ type TruncateNWriter struct {
 	failing int
 }
 
-func (this *TruncateNWriter) Write(b []byte) (int, error) {
-	this.current += 1
-	if this.current == this.failing {
+func (tw *TruncateNWriter) Write(b []byte) (int, error) {
+	tw.current++
+	if tw.current == tw.failing {
 		return 0, nil
 	}
 	return len(b), nil
@@ -310,7 +310,7 @@ func newTruncateNWriter(failing int) TruncateNWriter {
 }
 
 func TestWriteErrors(t *testing.T) {
-	var ew ErrorNWriter = newErrorNWriter(1)
+	ew := newErrorNWriter(1)
 	s := "hello world!"
 	err := writeString(s, &ew)
 	if err == nil {
@@ -327,7 +327,7 @@ func TestWriteErrors(t *testing.T) {
 }
 
 func TestWriteTruncateErrors(t *testing.T) {
-	var tw TruncateNWriter = newTruncateNWriter(1)
+	tw := newTruncateNWriter(1)
 	s := "hello world!"
 	err := writeString(s, &tw)
 	if err == nil {
@@ -352,7 +352,7 @@ func TestWriteTruncateErrors(t *testing.T) {
 }
 
 func TestToAofWithoutKey(t *testing.T) {
-	var op Operation = Operation{}
+	op := Operation{}
 	op.Command = "SELECT"
 	op.Arguments = append(make([]string, 0), "0")
 	var rw RecordWriter = make([]byte, 0)
@@ -368,7 +368,7 @@ func TestToAofWithoutKey(t *testing.T) {
 }
 
 func TestToAofOperationWithKey(t *testing.T) {
-	var op Operation = Operation{}
+	op := Operation{}
 	op.Command = "SADD"
 	op.Key = "k1"
 	op.Arguments = append(make([]string, 0), "k2", "k3")
@@ -385,7 +385,7 @@ func TestToAofOperationWithKey(t *testing.T) {
 }
 
 func TestToAofOperationWithSubOp(t *testing.T) {
-	var op Operation = Operation{}
+	op := Operation{}
 	op.Command = "BITOP"
 	op.SubOp = "AND"
 	op.Key = "k1"
@@ -403,7 +403,7 @@ func TestToAofOperationWithSubOp(t *testing.T) {
 }
 
 func TestToAofErrors(t *testing.T) {
-	var op Operation = Operation{}
+	op := Operation{}
 	op.Command = "BITOP"
 	op.SubOp = "AND"
 	op.Key = "k1"

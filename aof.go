@@ -10,12 +10,12 @@ import (
 	"strings"
 )
 
-var COMMANDS_WITHOUT_KEY map[string]bool
-var COMMANDS_WITH_SUBOP map[string]bool
+var commandsWithoutKey map[string]bool
+var commandsWithSubOp map[string]bool
 
 func init() {
-	COMMANDS_WITHOUT_KEY = map[string]bool{"FLUSHALL": true, "FLUSHDB": true, "SELECT": true}
-	COMMANDS_WITH_SUBOP = map[string]bool{"BITOP": true}
+	commandsWithoutKey = map[string]bool{"FLUSHALL": true, "FLUSHDB": true, "SELECT": true}
+	commandsWithSubOp = map[string]bool{"BITOP": true}
 }
 
 // Operation represent 1 redis operation
@@ -82,14 +82,14 @@ func readParameter(input *bufio.Reader) (s string, err error) {
 }
 
 func commandHasKey(command string) bool {
-	if COMMANDS_WITHOUT_KEY[strings.ToUpper(command)] {
+	if commandsWithoutKey[strings.ToUpper(command)] {
 		return false
 	}
 	return true
 }
 
 func commandHasSubOps(command string) bool {
-	if COMMANDS_WITH_SUBOP[strings.ToUpper(command)] {
+	if commandsWithSubOp[strings.ToUpper(command)] {
 		return true
 	}
 	return false
@@ -150,7 +150,7 @@ func ReadOperation(input *bufio.Reader) (op Operation, err error) {
 		count-- // decrement count. as key counts as one
 	}
 
-	atts := make([]string, 0)
+	var atts []string
 	for i := 1; i < count; i++ {
 		// read attributes
 		att, e := readParameter(input)
@@ -190,18 +190,18 @@ func writeString(str string, out io.Writer) (err error) {
 	return
 }
 
-//ToAof() generates the AOF representation of the Operation and write it to out
-// returns error or nil in case of success
-func (this Operation) ToAof(out io.Writer) (err error) {
+//ToAof generates the AOF representation of the Operation and write it to out
+//returns error or nil in case of success
+func (op Operation) ToAof(out io.Writer) (err error) {
 	// write parameter count
 	paramCount := 1 // 1 for command
-	if commandHasKey(this.Command) {
+	if commandHasKey(op.Command) {
 		paramCount++ // count key
 	}
-	if commandHasSubOps(this.Command) {
+	if commandHasSubOps(op.Command) {
 		paramCount++ // count subop
 	}
-	paramCount += len(this.Arguments)
+	paramCount += len(op.Arguments)
 	s := fmt.Sprintf("*%d\r\n", paramCount)
 	n, err := out.Write([]byte(s))
 	if err != nil {
@@ -212,27 +212,27 @@ func (this Operation) ToAof(out io.Writer) (err error) {
 		return
 	}
 	//write command
-	err = writeString(this.Command, out)
+	err = writeString(op.Command, out)
 	if err != nil {
 		return
 	}
 	// write subop
-	if commandHasSubOps(this.Command) {
-		err = writeString(this.SubOp, out)
+	if commandHasSubOps(op.Command) {
+		err = writeString(op.SubOp, out)
 		if err != nil {
 			return
 		}
 	}
 	// write key
-	if commandHasKey(this.Command) {
-		err = writeString(this.Key, out)
+	if commandHasKey(op.Command) {
+		err = writeString(op.Key, out)
 		if err != nil {
 			return
 		}
 	}
 	// write attributes
-	for i := 0; i < len(this.Arguments); i++ {
-		err = writeString(this.Arguments[i], out)
+	for i := 0; i < len(op.Arguments); i++ {
+		err = writeString(op.Arguments[i], out)
 		if err != nil {
 			return
 		}

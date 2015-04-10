@@ -173,7 +173,7 @@ func writeString2(str, msg string, out io.Writer) (err error) {
 	n, err := out.Write([]byte(str))
 	if err == nil {
 		if n != len(str) {
-			err = fmt.Errorf("Error writing %s. Written %d bytes expected %d", msg, n, len(str))
+			err = fmt.Errorf("error writing %s. Written %d bytes expected %d", msg, n, len(str))
 		}
 	}
 	return
@@ -208,7 +208,7 @@ func (op Operation) ToAof(out io.Writer) (err error) {
 		return
 	}
 	if n != len(s) {
-		err = fmt.Errorf("Error writing length written %d expected %d", n, len(s))
+		err = fmt.Errorf("error writing length written %d expected %d", n, len(s))
 		return
 	}
 	//write command

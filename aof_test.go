@@ -261,7 +261,7 @@ func (rw *RecordWriter) Write(b []byte) (int, error) {
 }
 
 func TestWriteStringOk(t *testing.T) {
-	var rw RecordWriter = make([]byte, 0)
+	rw := make(RecordWriter, 0)
 	s := "hello world!"
 	err := writeString(s, &rw)
 	if err != nil {
@@ -334,7 +334,7 @@ func TestWriteTruncateErrors(t *testing.T) {
 		t.Errorf("Error was expected")
 		return
 	}
-	if err.Error() != "Error writing string length. Written 0 bytes expected 5" {
+	if err.Error() != "error writing string length. Written 0 bytes expected 5" {
 		t.Errorf("Invalid error got '%s' expected 'Error writing string length. Written 0 bytes expected 5'", err.Error())
 		return
 	}
@@ -345,7 +345,7 @@ func TestWriteTruncateErrors(t *testing.T) {
 		t.Errorf("Error was expected")
 		return
 	}
-	if err.Error() != "Error writing string value. Written 0 bytes expected 14" {
+	if err.Error() != "error writing string value. Written 0 bytes expected 14" {
 		t.Errorf("Invalid error got '%s' expected 'Error writing string length. Written 0 bytes expected 14'", err.Error())
 		return
 	}
@@ -355,7 +355,7 @@ func TestToAofWithoutKey(t *testing.T) {
 	op := Operation{}
 	op.Command = "SELECT"
 	op.Arguments = append(make([]string, 0), "0")
-	var rw RecordWriter = make([]byte, 0)
+	rw := make(RecordWriter, 0)
 	err := op.ToAof(&rw)
 	if err != nil {
 		t.Errorf("ToAof failed, error:'%s'", err.Error())
@@ -372,7 +372,7 @@ func TestToAofOperationWithKey(t *testing.T) {
 	op.Command = "SADD"
 	op.Key = "k1"
 	op.Arguments = append(make([]string, 0), "k2", "k3")
-	var rw RecordWriter = make([]byte, 0)
+	rw := make(RecordWriter, 0)
 	err := op.ToAof(&rw)
 	if err != nil {
 		t.Errorf("ToAof failed, error:'%s'", err.Error())
@@ -390,7 +390,7 @@ func TestToAofOperationWithSubOp(t *testing.T) {
 	op.SubOp = "AND"
 	op.Key = "k1"
 	op.Arguments = append(make([]string, 0), "k2", "k3")
-	var rw RecordWriter = make([]byte, 0)
+	rw := make(RecordWriter, 0)
 	err := op.ToAof(&rw)
 	if err != nil {
 		t.Errorf("ToAof failed, error:'%s'", err.Error())

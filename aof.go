@@ -162,25 +162,23 @@ func ReadOperation(input *bufio.Reader) (op Operation, err error) {
 	return
 }
 
+func writeString2(str, msg string, out io.Writer) (err error) {
+	n, err := out.Write([]byte(str))
+	if err == nil {
+		if n != len(str) {
+			err = fmt.Errorf("Error writing %s. Written %d bytes expected %d", msg, n, len(str))
+		}
+	}
+	return
+}
+
 func writeString(str string, out io.Writer) (err error) {
 	size := len(str)
 	s := fmt.Sprintf("$%d\r\n", size)
-	n, err := out.Write([]byte(s))
-	if err != nil {
-		return
-	}
-	if n != len(s) {
-		err = fmt.Errorf("Error writing string length. Written %d bytes expected %d", n, len(s))
-		return
-	}
-	s = fmt.Sprintf("%s\r\n", str)
-	n, err = out.Write([]byte(s))
-	if err != nil {
-		return
-	}
-	if n != len(s) {
-		err = fmt.Errorf("Error writing string value. Written %d bytes expected %d", n, len(s))
-		return
+	err = writeString2(s, "string length", out)
+	if err == nil {
+		s = fmt.Sprintf("%s\r\n", str)
+		err = writeString2(s, "string value", out)
 	}
 	return
 }

@@ -283,7 +283,7 @@ type ErrorNWriter struct {
 func (ew *ErrorNWriter) Write(b []byte) (int, error) {
 	ew.current++
 	if ew.current == ew.failing {
-		return len(b), fmt.Errorf("Some error")
+		return len(b), fmt.Errorf("some error")
 	}
 	return len(b), nil
 }

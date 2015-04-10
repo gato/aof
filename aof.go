@@ -1,3 +1,5 @@
+// Package aof provides types and functions to read, parse and write redis append only file (AOF)
+// to know more about redis persistence see http://oldblog.antirez.com/post/redis-persistence-demystified.html
 package aof
 
 import (
@@ -16,6 +18,7 @@ func init() {
 	COMMANDS_WITH_SUBOP = map[string]bool{"BITOP": true}
 }
 
+// Operation represent 1 redis operation
 type Operation struct {
 	Command   string
 	SubOp     string
@@ -23,6 +26,8 @@ type Operation struct {
 	Arguments []string
 }
 
+// UnexpectedEOF is generated when a corruption is found in redis AOF, commonly an EOF or \n (delimiter)
+// when more data is expected
 type UnexpectedEOF struct {
 	msg string
 }
@@ -90,6 +95,8 @@ func commandHasSubOps(command string) bool {
 	return false
 }
 
+// ReadOperation reads one Operation from input
+// returns Operation or error
 func ReadOperation(input *bufio.Reader) (op Operation, err error) {
 	// read parameter count
 	var key string
@@ -183,6 +190,8 @@ func writeString(str string, out io.Writer) (err error) {
 	return
 }
 
+//ToAof() generates the AOF representation of the Operation and write it to out
+// returns error or nil in case of success
 func (this Operation) ToAof(out io.Writer) (err error) {
 	// write parameter count
 	paramCount := 1 // 1 for command

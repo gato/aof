@@ -61,9 +61,9 @@ func readParameter(input *bufio.Reader) (s string, err error) {
 		err = UnexpectedEOF{msg: se}
 		return
 	}
-	size, e := strconv.Atoi(str[1:len(str)])
+	size, e := strconv.Atoi(str[1:])
 	if e != nil {
-		se := fmt.Sprintf("Corrupt File: invalid number of parameters '%s' error:"+e.Error(), str[1:len(str)])
+		se := fmt.Sprintf("Corrupt File: invalid number of parameters '%s' error:"+e.Error(), str[1:])
 		err = UnexpectedEOF{msg: se}
 		return
 	}
@@ -114,9 +114,9 @@ func ReadOperation(input *bufio.Reader) (op Operation, err error) {
 		err = UnexpectedEOF{msg: se}
 		return
 	}
-	count, e := strconv.Atoi(str[1:len(str)])
+	count, e := strconv.Atoi(str[1:])
 	if e != nil {
-		se := fmt.Sprintf("Corrupt File: invalid operation parameter count '%s' error:"+e.Error(), str[1:len(str)])
+		se := fmt.Sprintf("Corrupt File: invalid operation parameter count '%s' error:"+e.Error(), str[1:])
 		err = UnexpectedEOF{msg: se}
 		return
 	}

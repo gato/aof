@@ -36,7 +36,7 @@ type bufioReader struct {
 	input *bufio.Reader
 }
 
-// creates a new bufioReader from an io.Reader
+// NewBufioReader creates a new bufioReader from an io.Reader
 func NewBufioReader(reader io.Reader) Reader {
 	input := bufio.NewReader(reader)
 	return bufioReader{input: input}

@@ -429,7 +429,7 @@ func TestToAofErrors(t *testing.T) {
 }
 
 func TestReadParameterErrors(t *testing.T) {
-	reader := NewBufioReader(strings.NewReader("a"))
+	reader := NewBufioReader(strings.NewReader("a")).(bufioReader)
 	_, err := reader.readParameter()
 	if err == nil {
 		t.Errorf("Error was expected")
@@ -440,7 +440,7 @@ func TestReadParameterErrors(t *testing.T) {
 		return
 	}
 
-	reader = NewBufioReader(strings.NewReader("a\r\n"))
+	reader = NewBufioReader(strings.NewReader("a\r\n")).(bufioReader)
 	_, err = reader.readParameter()
 	if err == nil {
 		t.Errorf("Error was expected")
@@ -452,7 +452,7 @@ func TestReadParameterErrors(t *testing.T) {
 		return
 	}
 
-	reader = NewBufioReader(strings.NewReader("a23\r\n"))
+	reader = NewBufioReader(strings.NewReader("a23\r\n")).(bufioReader)
 	_, err = reader.readParameter()
 	if err == nil {
 		t.Errorf("Error was expected")
@@ -464,7 +464,7 @@ func TestReadParameterErrors(t *testing.T) {
 		return
 	}
 
-	reader = NewBufioReader(strings.NewReader("$A\r\n"))
+	reader = NewBufioReader(strings.NewReader("$A\r\n")).(bufioReader)
 	_, err = reader.readParameter()
 	if err == nil {
 		t.Errorf("Error was expected")
@@ -475,7 +475,7 @@ func TestReadParameterErrors(t *testing.T) {
 		t.Errorf("Wrong error '%s' expected 'UnexpectedEOF'", err.Error())
 		return
 	}
-	reader = NewBufioReader(strings.NewReader("$6\r\nBAD"))
+	reader = NewBufioReader(strings.NewReader("$6\r\nBAD")).(bufioReader)
 	_, err = reader.readParameter()
 	if err == nil {
 		t.Errorf("Error was expected")
@@ -485,7 +485,7 @@ func TestReadParameterErrors(t *testing.T) {
 		t.Errorf("Wrong error '%s' expected 'EOF'", err.Error())
 		return
 	}
-	reader = NewBufioReader(strings.NewReader("$6\r\nBAD\r\n"))
+	reader = NewBufioReader(strings.NewReader("$6\r\nBAD\r\n")).(bufioReader)
 	_, err = reader.readParameter()
 	if err == nil {
 		t.Errorf("Error was expected")

@@ -26,19 +26,20 @@ type Operation struct {
 	Arguments []string
 }
 
-// AofReader is the interface used to read an AofStream and parse 1 Operation
-type AofReader interface {
+// Reader is the interface used to read an AofStream and parse 1 Operation
+type Reader interface {
 	ReadOperation() (Operation, error)
 }
 
-// implementation of AofReader using a bufio to read
-type bufioAofReader struct {
+// implementation of Reader using a bufio to read
+type bufioReader struct {
 	input *bufio.Reader
 }
 
-func NewBufioReader(reader io.Reader) bufioAofReader {
+// creates a new bufioReader from an io.Reader
+func NewBufioReader(reader io.Reader) Reader {
 	input := bufio.NewReader(reader)
-	return bufioAofReader{input: input}
+	return bufioReader{input: input}
 }
 
 // UnexpectedEOF is generated when a corruption is found in redis AOF, commonly an EOF or \n (delimiter)
@@ -51,7 +52,7 @@ func (e UnexpectedEOF) Error() string {
 	return "Unexpected EOF: " + e.msg
 }
 
-func (reader bufioAofReader) readLine() (s string, err error) {
+func (reader bufioReader) readLine() (s string, err error) {
 	str, err := reader.input.ReadString('\n')
 	if err != nil {
 		return
@@ -61,7 +62,7 @@ func (reader bufioAofReader) readLine() (s string, err error) {
 	return
 }
 
-func (reader bufioAofReader) readParameter() (s string, err error) {
+func (reader bufioReader) readParameter() (s string, err error) {
 	// read parameter length
 	str, err := reader.readLine()
 	if err != nil {
@@ -112,7 +113,7 @@ func commandHasSubOps(command string) bool {
 
 // ReadOperation reads one Operation from input
 // returns Operation or error
-func (reader bufioAofReader) ReadOperation() (op Operation, err error) {
+func (reader bufioReader) ReadOperation() (op Operation, err error) {
 	// read parameter count
 	var key string
 	var subop string

@@ -1,7 +1,6 @@
 package aof
 
 import (
-	"bufio"
 	"fmt"
 	"io"
 	"os"
@@ -16,8 +15,8 @@ func TestRead(t *testing.T) {
 		t.Errorf("Can't open file. Error:'%s'", err.Error())
 		return
 	}
-	input := bufio.NewReader(file)
-	op1, err := ReadOperation(input)
+	reader := NewBufioReader(file)
+	op1, err := reader.ReadOperation()
 	if err != nil {
 		t.Errorf("Error reading operation 1 :'%s'", err.Error())
 		return
@@ -26,7 +25,7 @@ func TestRead(t *testing.T) {
 		t.Errorf("Wrong command '%s' expected 'SELECT'", op1.Command)
 		return
 	}
-	op2, err := ReadOperation(input)
+	op2, err := reader.ReadOperation()
 	if err != nil {
 		t.Errorf("Error reading operation 2 :'%s'", err.Error())
 		return
@@ -35,7 +34,7 @@ func TestRead(t *testing.T) {
 		t.Errorf("Wrong command '%s' expected 'SET'", op1.Command)
 		return
 	}
-	op3, err := ReadOperation(input)
+	op3, err := reader.ReadOperation()
 	if err != nil {
 		t.Errorf("Error reading operation 3 :'%s'", err.Error())
 		return
@@ -44,7 +43,7 @@ func TestRead(t *testing.T) {
 		t.Errorf("Wrong command '%s' expected 'SADD'", op1.Command)
 		return
 	}
-	op4, err := ReadOperation(input)
+	op4, err := reader.ReadOperation()
 	if err != nil {
 		t.Errorf("Error reading operation 4 :'%s'", err.Error())
 		return
@@ -53,7 +52,7 @@ func TestRead(t *testing.T) {
 		t.Errorf("Wrong command '%s' expected 'SADD'", op1.Command)
 		return
 	}
-	_, err = ReadOperation(input)
+	_, err = reader.ReadOperation()
 	if err == nil {
 		t.Errorf("An error was expected")
 		return
@@ -71,8 +70,8 @@ func TestUnexpectedEofNoArguments(t *testing.T) {
 		t.Errorf("Can't open file. Error:'%s'", err.Error())
 		return
 	}
-	input := bufio.NewReader(file)
-	_, err = ReadOperation(input)
+	reader := NewBufioReader(file)
+	_, err = reader.ReadOperation()
 	if err == nil {
 		t.Errorf("An error was expected")
 		return
@@ -90,8 +89,8 @@ func TestUnexpectedEofInvalidNumberOfArguments(t *testing.T) {
 		t.Errorf("Can't open file. Error:'%s'", err.Error())
 		return
 	}
-	input := bufio.NewReader(file)
-	_, err = ReadOperation(input)
+	reader := NewBufioReader(file)
+	_, err = reader.ReadOperation()
 	if err == nil {
 		t.Errorf("An error was expected but got nil")
 		return
@@ -109,8 +108,8 @@ func TestUnexpectedEofInvalidCommandSize(t *testing.T) {
 		t.Errorf("Can't open file. Error:'%s'", err.Error())
 		return
 	}
-	input := bufio.NewReader(file)
-	_, err = ReadOperation(input)
+	reader := NewBufioReader(file)
+	_, err = reader.ReadOperation()
 	if err == nil {
 		t.Errorf("An error was expected but got nil")
 		return
@@ -128,8 +127,8 @@ func TestUnexpectedEofInvalidArgumentSize(t *testing.T) {
 		t.Errorf("Can't open file. Error:'%s'", err.Error())
 		return
 	}
-	input := bufio.NewReader(file)
-	_, err = ReadOperation(input)
+	reader := NewBufioReader(file)
+	_, err = reader.ReadOperation()
 	if err == nil {
 		t.Errorf("An error was expected but got nil")
 		return
@@ -147,8 +146,8 @@ func TestUnexpectedEofInvalidSubopSize(t *testing.T) {
 		t.Errorf("Can't open file. Error:'%s'", err.Error())
 		return
 	}
-	input := bufio.NewReader(file)
-	_, err = ReadOperation(input)
+	reader := NewBufioReader(file)
+	_, err = reader.ReadOperation()
 	if err == nil {
 		t.Errorf("An error was expected but got nil")
 		return
@@ -167,8 +166,8 @@ func TestFlushallSupport(t *testing.T) {
 		t.Errorf("Can't open file. Error:'%s'", err.Error())
 		return
 	}
-	input := bufio.NewReader(file)
-	op1, err := ReadOperation(input)
+	reader := NewBufioReader(file)
+	op1, err := reader.ReadOperation()
 	if err != nil {
 		t.Errorf("Error reading operation 1 :'%s'", err.Error())
 		return
@@ -181,7 +180,7 @@ func TestFlushallSupport(t *testing.T) {
 		t.Errorf("Wrong argument count '%d' expected '0'.", len(op1.Arguments))
 		return
 	}
-	_, err = ReadOperation(input)
+	_, err = reader.ReadOperation()
 	if err != nil {
 		t.Errorf("Error reading operation 2 :'%s'", err.Error())
 		return
@@ -195,8 +194,8 @@ func TestFlushdbSupport(t *testing.T) {
 		t.Errorf("Can't open file. Error:'%s'", err.Error())
 		return
 	}
-	input := bufio.NewReader(file)
-	op1, err := ReadOperation(input)
+	reader := NewBufioReader(file)
+	op1, err := reader.ReadOperation()
 	if err != nil {
 		t.Errorf("Error reading operation 1 :'%s'", err.Error())
 		return
@@ -209,7 +208,7 @@ func TestFlushdbSupport(t *testing.T) {
 		t.Errorf("Wrong argument count '%d' expected '0'.", len(op1.Arguments))
 		return
 	}
-	_, err = ReadOperation(input)
+	_, err = reader.ReadOperation()
 	if err != nil {
 		t.Errorf("Error reading operation 2 :'%s'", err.Error())
 		return
@@ -223,8 +222,8 @@ func TestBitopSupport(t *testing.T) {
 		t.Errorf("Can't open file. Error:'%s'", err.Error())
 		return
 	}
-	input := bufio.NewReader(file)
-	op1, err := ReadOperation(input)
+	reader := NewBufioReader(file)
+	op1, err := reader.ReadOperation()
 	if err != nil {
 		t.Errorf("Error reading operation 1 :'%s'", err.Error())
 		return
@@ -246,7 +245,7 @@ func TestBitopSupport(t *testing.T) {
 		t.Errorf("Wrong argument count '%d' expected '2'.", len(op1.Arguments))
 		return
 	}
-	_, err = ReadOperation(input)
+	_, err = reader.ReadOperation()
 	if err != nil {
 		t.Errorf("Error reading operation 2 :'%s'", err.Error())
 		return
@@ -430,8 +429,8 @@ func TestToAofErrors(t *testing.T) {
 }
 
 func TestReadParameterErrors(t *testing.T) {
-	input := bufio.NewReader(strings.NewReader("a"))
-	_, err := readParameter(input)
+	reader := NewBufioReader(strings.NewReader("a"))
+	_, err := reader.readParameter()
 	if err == nil {
 		t.Errorf("Error was expected")
 		return
@@ -441,8 +440,8 @@ func TestReadParameterErrors(t *testing.T) {
 		return
 	}
 
-	input = bufio.NewReader(strings.NewReader("a\r\n"))
-	_, err = readParameter(input)
+	reader = NewBufioReader(strings.NewReader("a\r\n"))
+	_, err = reader.readParameter()
 	if err == nil {
 		t.Errorf("Error was expected")
 		return
@@ -453,8 +452,8 @@ func TestReadParameterErrors(t *testing.T) {
 		return
 	}
 
-	input = bufio.NewReader(strings.NewReader("a23\r\n"))
-	_, err = readParameter(input)
+	reader = NewBufioReader(strings.NewReader("a23\r\n"))
+	_, err = reader.readParameter()
 	if err == nil {
 		t.Errorf("Error was expected")
 		return
@@ -465,8 +464,8 @@ func TestReadParameterErrors(t *testing.T) {
 		return
 	}
 
-	input = bufio.NewReader(strings.NewReader("$A\r\n"))
-	_, err = readParameter(input)
+	reader = NewBufioReader(strings.NewReader("$A\r\n"))
+	_, err = reader.readParameter()
 	if err == nil {
 		t.Errorf("Error was expected")
 		return
@@ -476,8 +475,8 @@ func TestReadParameterErrors(t *testing.T) {
 		t.Errorf("Wrong error '%s' expected 'UnexpectedEOF'", err.Error())
 		return
 	}
-	input = bufio.NewReader(strings.NewReader("$6\r\nBAD"))
-	_, err = readParameter(input)
+	reader = NewBufioReader(strings.NewReader("$6\r\nBAD"))
+	_, err = reader.readParameter()
 	if err == nil {
 		t.Errorf("Error was expected")
 		return
@@ -486,8 +485,8 @@ func TestReadParameterErrors(t *testing.T) {
 		t.Errorf("Wrong error '%s' expected 'EOF'", err.Error())
 		return
 	}
-	input = bufio.NewReader(strings.NewReader("$6\r\nBAD\r\n"))
-	_, err = readParameter(input)
+	reader = NewBufioReader(strings.NewReader("$6\r\nBAD\r\n"))
+	_, err = reader.readParameter()
 	if err == nil {
 		t.Errorf("Error was expected")
 		return
@@ -501,8 +500,8 @@ func TestReadParameterErrors(t *testing.T) {
 }
 
 func TestReadOperationErrors(t *testing.T) {
-	input := bufio.NewReader(strings.NewReader("a"))
-	_, err := ReadOperation(input)
+	reader := NewBufioReader(strings.NewReader("a"))
+	_, err := reader.ReadOperation()
 	if err == nil {
 		t.Errorf("Error was expected")
 		return
@@ -511,8 +510,8 @@ func TestReadOperationErrors(t *testing.T) {
 		t.Errorf("Wrong error '%s' expected 'EOF'", err.Error())
 		return
 	}
-	input = bufio.NewReader(strings.NewReader("a\r\n"))
-	_, err = ReadOperation(input)
+	reader = NewBufioReader(strings.NewReader("a\r\n"))
+	_, err = reader.ReadOperation()
 	if err == nil {
 		t.Errorf("Error was expected")
 		return
@@ -522,8 +521,8 @@ func TestReadOperationErrors(t *testing.T) {
 		t.Errorf("Wrong error '%s' expected 'UnexpectedEOF'", err.Error())
 		return
 	}
-	input = bufio.NewReader(strings.NewReader("a23\r\n"))
-	_, err = ReadOperation(input)
+	reader = NewBufioReader(strings.NewReader("a23\r\n"))
+	_, err = reader.ReadOperation()
 	if err == nil {
 		t.Errorf("Error was expected")
 		return
@@ -533,9 +532,8 @@ func TestReadOperationErrors(t *testing.T) {
 		t.Errorf("Wrong error '%s' expected 'UnexpectedEOF'", err.Error())
 		return
 	}
-
-	input = bufio.NewReader(strings.NewReader("*A\r\n"))
-	_, err = ReadOperation(input)
+	reader = NewBufioReader(strings.NewReader("*A\r\n"))
+	_, err = reader.ReadOperation()
 	if err == nil {
 		t.Errorf("Error was expected")
 		return

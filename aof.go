@@ -26,6 +26,21 @@ type Operation struct {
 	Arguments []string
 }
 
+// AofReader is the interface used to read an AofStream and parse 1 Operation
+type AofReader interface {
+	ReadOperation() (Operation, error)
+}
+
+// implementation of AofReader using a bufio to read
+type bufioAofReader struct {
+	input *bufio.Reader
+}
+
+func NewBufioReader(reader io.Reader) bufioAofReader {
+	input := bufio.NewReader(reader)
+	return bufioAofReader{input: input}
+}
+
 // UnexpectedEOF is generated when a corruption is found in redis AOF, commonly an EOF or \n (delimiter)
 // when more data is expected
 type UnexpectedEOF struct {
@@ -36,8 +51,8 @@ func (e UnexpectedEOF) Error() string {
 	return "Unexpected EOF: " + e.msg
 }
 
-func readLine(input *bufio.Reader) (s string, err error) {
-	str, err := input.ReadString('\n')
+func (reader bufioAofReader) readLine() (s string, err error) {
+	str, err := reader.input.ReadString('\n')
 	if err != nil {
 		return
 	}
@@ -46,9 +61,9 @@ func readLine(input *bufio.Reader) (s string, err error) {
 	return
 }
 
-func readParameter(input *bufio.Reader) (s string, err error) {
+func (reader bufioAofReader) readParameter() (s string, err error) {
 	// read parameter length
-	str, err := readLine(input)
+	str, err := reader.readLine()
 	if err != nil {
 		return
 	}
@@ -68,7 +83,7 @@ func readParameter(input *bufio.Reader) (s string, err error) {
 		return
 	}
 	// read parameter
-	str, err = readLine(input)
+	str, err = reader.readLine()
 	if err != nil {
 		return
 	}
@@ -97,11 +112,11 @@ func commandHasSubOps(command string) bool {
 
 // ReadOperation reads one Operation from input
 // returns Operation or error
-func ReadOperation(input *bufio.Reader) (op Operation, err error) {
+func (reader bufioAofReader) ReadOperation() (op Operation, err error) {
 	// read parameter count
 	var key string
 	var subop string
-	str, err := readLine(input)
+	str, err := reader.readLine()
 	if err != nil {
 		return
 	}
@@ -121,7 +136,7 @@ func ReadOperation(input *bufio.Reader) (op Operation, err error) {
 		return
 	}
 	// read command
-	command, e := readParameter(input)
+	command, e := reader.readParameter()
 	if e != nil {
 		se := fmt.Sprintf("Corrupt File: Command can't be read. Error:" + e.Error())
 		err = UnexpectedEOF{msg: se}
@@ -130,7 +145,7 @@ func ReadOperation(input *bufio.Reader) (op Operation, err error) {
 
 	if commandHasSubOps(command) {
 		// read subop
-		subop, e = readParameter(input)
+		subop, e = reader.readParameter()
 		if e != nil {
 			se := fmt.Sprintf("Corrupt File: subop can't be read. Error:" + e.Error())
 			err = UnexpectedEOF{msg: se}
@@ -141,7 +156,7 @@ func ReadOperation(input *bufio.Reader) (op Operation, err error) {
 
 	if commandHasKey(command) {
 		// read key
-		key, e = readParameter(input)
+		key, e = reader.readParameter()
 		if e != nil {
 			se := fmt.Sprintf("Corrupt File: key can't be read. Error:" + e.Error())
 			err = UnexpectedEOF{msg: se}
@@ -153,7 +168,7 @@ func ReadOperation(input *bufio.Reader) (op Operation, err error) {
 	var atts []string
 	for i := 1; i < count; i++ {
 		// read attributes
-		att, e := readParameter(input)
+		att, e := reader.readParameter()
 		if e != nil {
 			se := fmt.Sprintf("Corrupt File: attribute pos:%d can't be read. Error:"+e.Error(), i)
 			err = UnexpectedEOF{msg: se}

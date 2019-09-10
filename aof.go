@@ -54,12 +54,30 @@ func (e UnexpectedEOF) Error() string {
 }
 
 func (reader bufioReader) readLine() (s string, err error) {
-	str, err := reader.input.ReadString('\n')
-	if err != nil {
+	s, err = reader.input.ReadString('\n')
+	if err != nil || len(s) < 2 {
 		return
 	}
-	str = strings.TrimSuffix(str, "\n")
-	s = strings.TrimSuffix(str, "\r")
+	// remove \r\n
+	s = s[:len(s)-2]
+	return
+}
+
+func (reader bufioReader) read(size int) (s string, err error) {
+	var arr []byte
+	// +2 is for reading \r \n
+	for i := 0; i < (size + 2); i++ {
+		var b byte
+		b, err = reader.input.ReadByte()
+		if err != nil {
+			return
+		}
+		if i < size {
+			// but we don't want them on the string
+			arr = append(arr, b)
+		}
+	}
+	s = string(arr)
 	return
 }
 
@@ -85,13 +103,13 @@ func (reader bufioReader) readParameter() (s string, err error) {
 		return
 	}
 	// read parameter
-	str, err = reader.readLine()
-	if err != nil {
-		return
-	}
+	str, err = reader.read(size)
 	if len(str) != size {
 		se := fmt.Sprintf("Corrupt File: invalid parameter length expected:%d got:%d value:'%s'", size, len(str), str)
 		err = UnexpectedEOF{msg: se}
+		return
+	}
+	if err != nil {
 		return
 	}
 	s = str

@@ -481,8 +481,9 @@ func TestReadParameterErrors(t *testing.T) {
 		t.Errorf("Error was expected")
 		return
 	}
-	if err != io.EOF {
-		t.Errorf("Wrong error '%s' expected 'EOF'", err.Error())
+	_, ok = err.(UnexpectedEOF)
+	if !ok {
+		t.Errorf("Wrong error '%s' expected 'UnexpectedEOF'", err.Error())
 		return
 	}
 	reader = NewBufioReader(strings.NewReader("$6\r\nBAD\r\n")).(bufioReader)

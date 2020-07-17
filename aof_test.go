@@ -545,3 +545,17 @@ func TestReadOperationErrors(t *testing.T) {
 		return
 	}
 }
+
+func TestReadDataHasEndLines(t *testing.T) {
+	reader := NewBufioReader(strings.NewReader("*4\r\n$4\r\nSADD\r\n$4\r\nk\r\n1\r\n$2\r\nk2\r\n$2\r\nk3\r\n"))
+	op, _ := reader.ReadOperation()
+	if op.Command != "SADD" {
+		t.Errorf("Wrong command '%s' expected 'SADD'", op.Command)
+		return
+	}
+	if op.Key != "k\r\n1" {
+		t.Errorf("Wrong Key '%s' expected 'k\\r\\n1'", op.Key)
+		return
+	}
+
+}
